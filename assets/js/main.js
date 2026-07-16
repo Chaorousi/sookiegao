@@ -11,12 +11,10 @@
     document.body.classList.add('loading');
     const pctEl = loader.querySelector('.pct');
     const seen = sessionStorage.getItem('sg_seen');
-    const MIN = seen ? 700 : 3400;           // ms the ceremony lasts
+    const MIN = seen ? 2600 : 4000;          // the ceremony plays on every visit
     const t0 = performance.now();
     let pageLoaded = document.readyState === 'complete';
     window.addEventListener('load', () => { pageLoaded = true; });
-
-    if (seen) loader.classList.add('inked'); // skip stroke theatre on repeats
 
     function tick() {
       const t = Math.min(1, (performance.now() - t0) / MIN);
@@ -33,10 +31,42 @@
         document.body.classList.remove('loading');
         sessionStorage.setItem('sg_seen', '1');
         setTimeout(() => loader.remove(), 1000);
-      }, seen ? 120 : 650);
+      }, 500);
     }
     tick();
   }
+
+  /* ----------------------------------------------------------
+     ANIMATED FAVICON — Sookie and her cat, from a frame sprite
+  ---------------------------------------------------------- */
+  (function () {
+    const link = document.querySelector('link[rel="icon"]');
+    if (!link) return;
+    const sprite = new Image();
+    sprite.src = 'assets/img/favicon-sprite.jpg';
+    const cv = document.createElement('canvas');
+    cv.width = 64; cv.height = 64;
+    const cx = cv.getContext('2d');
+    let fi = 0;
+    sprite.addEventListener('load', () => {
+      setInterval(() => {
+        cx.clearRect(0, 0, 64, 64);
+        cx.save();
+        cx.beginPath(); cx.arc(32, 32, 31, 0, Math.PI * 2); cx.clip();
+        cx.drawImage(sprite, (fi % 4) * 96, (fi >> 2) * 96, 96, 96, 0, 0, 64, 64);
+        cx.restore();
+        link.href = cv.toDataURL('image/png');
+        fi = (fi + 1) % 16;
+      }, 200);
+    });
+  })();
+
+  /* make sure muted loop videos actually play */
+  function nudgeVideos() {
+    document.querySelectorAll('video[autoplay]').forEach(v => { v.play().catch(() => {}); });
+  }
+  window.addEventListener('load', nudgeVideos);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) nudgeVideos(); });
 
   /* ----------------------------------------------------------
      NAV — hero-aware colour + solid state after scroll

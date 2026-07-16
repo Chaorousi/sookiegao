@@ -53,7 +53,7 @@
 
   /* time-based driver: catches up when rAF is throttled (hidden tabs),
      so an animation always completes even if the user switches away */
-  function drive(stepFn) {
+  function drive(stepFn, onDone) {
     let last = performance.now();
     function tick() {
       const now = performance.now();
@@ -64,13 +64,43 @@
       if (!done) {
         if (document.hidden) setTimeout(tick, 80);
         else requestAnimationFrame(tick);
-      }
+      } else if (onDone) onDone();
     }
     tick();
   }
 
+  /* paint, hold, gently wash out, paint again: keeps the pieces alive */
+  function driveLoop(canvas, runFn, holdMs) {
+    let stop = false;
+    function cycle() {
+      if (stop || !document.body.contains(canvas)) return;
+      runFn(() => {
+        setTimeout(() => {
+          if (stop || !document.body.contains(canvas)) return;
+          const ctx = canvas.getContext('2d');
+          let f = 0;
+          drive(() => {
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'rgba(0,0,0,0.10)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+            return ++f >= 34;
+          }, () => {
+            const c = canvas.getContext('2d');
+            c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
+            c.clearRect(0, 0, canvas.width, canvas.height); c.restore();
+            cycle();
+          });
+        }, holdMs);
+      });
+    }
+    cycle();
+  }
+
   /* ---------- watercolor icons ---------- */
-  function runIcon(canvas) {
+  function runIcon(canvas, onDone) {
     const s0 = setup(canvas);
     if (!s0) return;
     const brush = s0.brush, ctx = s0.ctx;
@@ -136,11 +166,11 @@
         if (age === 88) brush.blob(-5 * s, -15 * s, 4 * s, { h: 45, s: 85, l: 55 }, .16, 0, 1.2);
       }
     }
-    drive(frame);
+    drive(frame, onDone);
   }
 
   /* ---------- flowers (Symbiotic Healing) ---------- */
-  function runFlowers(canvas) {
+  function runFlowers(canvas, onDone) {
     const env = setup(canvas);
     if (!env) return;
     const ctx = env.ctx, brush = env.brush, W = env.w, H = env.h;
@@ -250,11 +280,11 @@
       flowers.forEach(f => { if (!f.done) { f.done = f.drawStep(); } if (!f.done) active = true; });
       return !active;
     }
-    drive(loop);
+    drive(loop, onDone);
   }
 
   /* ---------- cats (Paws Club) ---------- */
-  function runCats(canvas) {
+  function runCats(canvas, onDone) {
     const env = setup(canvas);
     if (!env) return;
     const brush = env.brush, ctx = env.ctx, W = env.w, H = env.h;
@@ -324,32 +354,51 @@
       return false;
     };
     const cats = [];
-    const n = W < 500 ? 2 : 3;
+    const duo = canvas.hasAttribute('data-duo');
+    const n = duo ? 2 : (W < 500 ? 2 : 3);
     for (let i = 0; i < n; i++) {
-      const cx = W * (.18 + .64 * (n === 1 ? .5 : i / (n - 1))) + (Math.random() - .5) * W * .06;
-      const cy = H * (.45 + Math.random() * .2);
+      const cx = duo
+        ? W * (i === 0 ? .24 : .76) + (Math.random() - .5) * W * .04
+        : W * (.18 + .64 * (n === 1 ? .5 : i / (n - 1))) + (Math.random() - .5) * W * .06;
+      const cy = duo ? H * (.46 + Math.random() * .08) : H * (.45 + Math.random() * .2);
       const sc = Math.min(W, H) / 260 * (.8 + Math.random() * .4);
       // ambient wash
       const washCol = Math.random() > .5 ? { h: 40, s: 20, l: 85 } : { h: 200, s: 15, l: 85 };
       for (let k = 0; k < 12; k++) brush.blob(cx + (Math.random() - .5) * 130 * sc, cy + (Math.random() - .5) * 90 * sc, 34 * sc * (Math.random() + .5), washCol, .012, Math.random() * Math.PI, 1.6);
-      cats.push(new Cat(cx, cy, sc, i));
+      const cat = new Cat(cx, cy, sc, duo ? (i === 0 ? 0 : 2) : i);
+      if (duo && cat.p.dark.l < 20) cat.p = PALETTES[i === 0 ? 1 : 0]; // no near-black cats beside the signature
+      cats.push(cat);
     }
     function loop() {
       let active = false;
       cats.forEach(c => { if (!c.draw()) active = true; });
       return !active;
     }
-    drive(loop);
+    drive(loop, onDone);
   }
 
   /* ---------- mount on visibility ---------- */
+  /* wait until the canvas actually has layout before painting */
+  function whenSized(c, fn, tries) {
+    if (c.clientWidth > 0 && c.clientHeight > 0) return fn();
+    if ((tries || 0) > 40) return;
+    setTimeout(() => whenSized(c, fn, (tries || 0) + 1), 120);
+  }
+
   const io = new IntersectionObserver(ents => {
     ents.forEach(e => {
       if (!e.isIntersecting) return;
       const c = e.target; io.unobserve(c);
-      if (c.dataset.wcIcon) runIcon(c);
-      else if (c.dataset.wc === 'flowers') runFlowers(c);
-      else if (c.dataset.wc === 'cats') runCats(c);
+      const once = c.hasAttribute('data-once');
+      whenSized(c, () => {
+        if (c.dataset.wcIcon) {
+          once ? runIcon(c) : driveLoop(c, d => runIcon(c, d), 2600);
+        } else if (c.dataset.wc === 'flowers') {
+          once ? runFlowers(c) : driveLoop(c, d => runFlowers(c, d), 5200);
+        } else if (c.dataset.wc === 'cats') {
+          once ? runCats(c) : driveLoop(c, d => runCats(c, d), 4200);
+        }
+      });
     });
   }, { threshold: 0.25 });
 
