@@ -357,8 +357,9 @@
     const duo = canvas.hasAttribute('data-duo');
     const n = duo ? 2 : (W < 500 ? 2 : 3);
     for (let i = 0; i < n; i++) {
+      const spread = W < 480 ? .20 : .26;   // keep cats fully inside narrow canvases
       const cx = duo
-        ? W * (i === 0 ? .24 : .76) + (Math.random() - .5) * W * .04
+        ? W * (i === 0 ? .5 - spread : .5 + spread) + (Math.random() - .5) * W * .04
         : W * (.18 + .64 * (n === 1 ? .5 : i / (n - 1))) + (Math.random() - .5) * W * .06;
       const cy = duo ? H * (.46 + Math.random() * .08) : H * (.45 + Math.random() * .2);
       const sc = Math.min(W, H) / 260 * (.8 + Math.random() * .4);
