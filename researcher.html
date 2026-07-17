@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="assets/img/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Homemade+Apple&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Caveat:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/main.css">
 <link rel="preload" as="image" href="assets/img/banner-researcher.jpg">
 </head>
@@ -68,7 +68,8 @@
 
 <main>
 <!-- 01 · PSYCHOLOGY OF UNCONSENTED INFERIORITY -->
-<section class="sec" id="inferiority">
+<section class="sec sec-rel" id="inferiority">
+  <canvas class="wc-art tr" data-wc="workspace" aria-hidden="true"></canvas>
   <header class="proj-head">
     <span class="proj-idx">01</span>
     <h2 class="proj-title">The Psychology of Unconsented Inferiority</h2>
@@ -76,7 +77,7 @@
     <p class="proj-desc">Through psychology, education, and neuroscience literature, I investigated how parenting, stereotypes, and cognitive patterns contribute to involuntary feelings of inferiority. This research strengthened my interest in understanding how people can build psychological resilience, and won a Very High Commendation award in the John Locke competition.</p>
   </header>
   <div class="doc-row">
-    <div class="doc reveal" data-src="assets/docs/inferiority/page" data-pages="12" data-title="The Psychology of Unconsented Inferiority">
+    <div class="doc reveal" style="max-width:560px" data-src="assets/docs/inferiority/page" data-pages="12" data-title="The Psychology of Unconsented Inferiority">
       <button class="doc-cover" aria-label="Read the essay fullscreen">
         <img src="assets/docs/inferiority/page-01.jpg" alt="Cover page of the psychology research essay" loading="lazy">
         <span class="doc-veil"><span class="doc-btn">Read fullscreen</span></span>
@@ -87,7 +88,8 @@
 </section>
 
 <!-- 02 · CLIMATE CHANGE CHALLENGE -->
-<section class="sec dim" id="climate">
+<section class="sec dim sec-rel" id="climate">
+  <canvas class="wc-art tr" data-wc="storm" aria-hidden="true"></canvas>
   <header class="proj-head">
     <span class="proj-idx">02</span>
     <h2 class="proj-title">Climate Change Challenge</h2>
@@ -104,21 +106,29 @@
 </section>
 
 <!-- 03 · ANIMAL WELFARE -->
-<section class="sec" id="animal-welfare">
+<section class="sec sec-rel" id="animal-welfare">
+  <canvas class="wc-art br" data-wc="animals" aria-hidden="true"></canvas>
   <header class="proj-head">
     <span class="proj-idx">03</span>
     <h2 class="proj-title">Research on Animal Welfare</h2>
-    <p class="proj-sub">“From Cause to Care: Rethinking Responsibility for Stray Animal Welfare”</p>
+    <p class="proj-sub">Argumentative essay</p>
     <p class="proj-desc">This project explores how responsibility for animal welfare should be shared among individuals, corporations, and governments. By integrating ethical reasoning, policy analysis, and real-world case studies, I concluded that lasting improvements require coordinated action across every level of society.</p>
   </header>
-  <div class="doc-row">
-    <div class="doc reveal" style="max-width:560px">
-      <button class="doc-cover" data-essay="essay-welfare" data-title="From Cause to Care · Animal Welfare" aria-label="Read the essay fullscreen">
-        <img src="assets/img/card-advocator.jpg" alt="Crayon drawing of a girl caring for rescued cats — cover for the animal welfare essay" loading="lazy" style="aspect-ratio:3/4;object-fit:cover">
-        <span class="doc-veil"><span class="doc-btn">Read the essay</span></span>
-      </button>
-      <div class="doc-meta"><span>Argumentative essay</span><span>~2,400 words</span></div>
+  <div class="essay-teaser reveal">
+    <div>
+      <h3 class="essay-teaser-title">From Cause to Care: Rethinking Responsibility for Stray Animal Welfare</h3>
+      <div class="essay-teaser-meta">Sookie Gao · Research writing · ~2,400 words</div>
+      <div class="essay-teaser-body">
+        <p>“The greatness of a nation and its moral progress can be judged by the way its animals are treated,” said by Mahatma Gandhi. While this statement is frequently cited in discussions of animal welfare, it raises a difficult question: who, exactly, is responsible for ensuring that animals are treated ethically?</p>
+        <p>In modern society, the mistreatment of animals exists across many contexts from industrial farming to urban neglect. Among these, the most visible issues are the treatment of stray animals. Stray animal populations are not a natural phenomenon, they are the cumulative result of human choices, economic structures, and regulatory failures.</p>
+        <p>A key issue in protecting stray animals is deciding who has the most power to make change: individuals, corporations, or governments, and whether animal welfare should be something enforced by rules or depend on people’s goodwill.</p>
+      </div>
+      <button class="essay-read-btn" data-essay="essay-welfare" data-title="From Cause to Care · Animal Welfare">Read the full essay →</button>
     </div>
+    <button class="essay-teaser-thumb" data-essay="essay-welfare" data-title="From Cause to Care · Animal Welfare" aria-label="Read the essay fullscreen">
+      <img src="assets/img/card-advocator.jpg" alt="Crayon drawing of a girl caring for rescued cats" loading="lazy">
+      <figcaption>Argumentative essay</figcaption>
+    </button>
   </div>
 </section>
 </main>

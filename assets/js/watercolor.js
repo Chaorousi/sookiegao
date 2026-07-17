@@ -378,6 +378,182 @@
     drive(loop, onDone);
   }
 
+  /* ============================================================
+     GENERATOR-BASED ART (Hami embroidery, thunderstorm, small
+     animals, research desk) — adapted from the studio reference
+     pieces. Painted at a fixed 400px buffer and scaled by CSS,
+     then repainted on a gentle loop.
+  ============================================================ */
+  /* brighter, higher-opacity palette so the threads read on the dark Hami section */
+  function* genEmbroidery(brush, w, h) {
+    const cx = w / 2, cy = h / 2, sc = Math.min(w, h) / 400;
+    const POM = [{ h: 348, s: 82, l: 62 }, { h: 356, s: 85, l: 66 }, { h: 14, s: 82, l: 66 }];
+    const SEED = { h: 344, s: 92, l: 55 };
+    const VINE = [{ h: 145, s: 55, l: 55 }, { h: 128, s: 52, l: 62 }, { h: 160, s: 48, l: 50 }];
+    const ACC = [{ h: 205, s: 78, l: 66 }, { h: 42, s: 92, l: 66 }, { h: 310, s: 62, l: 68 }];
+    const THREAD = { h: 38, s: 30, l: 78 };
+    const R = Math.min(w, h) * 0.42;
+    for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
+      for (let t = 0; t <= 1; t += 0.12) {
+        brush.wash(cx + Math.cos(a) * R * t * 0.9 + (Math.random() - .5) * 3, cy + Math.sin(a) * R * t * 0.9 + (Math.random() - .5) * 3, 1.5 * sc, THREAD, 0.14);
+      }
+      yield;
+    }
+    const vineCount = 8;
+    for (let v = 0; v < vineCount; v++) {
+      let ca = (Math.PI * 2 / vineCount) * v;
+      let x = cx + Math.cos(ca) * 20 * sc, y = cy + Math.sin(ca) * 20 * sc;
+      const steps = Math.floor((R * 0.85) / (4 * sc));
+      for (let i = 0; i < steps; i++) {
+        ca += (Math.random() - 0.45) * 0.18;
+        const nx = x + Math.cos(ca) * 4 * sc, ny = y + Math.sin(ca) * 4 * sc;
+        const wdt = (3 * (1 - i / steps) + 0.7) * sc;
+        brush.stroke(x, y, nx, ny, VINE[0], wdt, 0.42);
+        brush.stroke(x, y, nx, ny, VINE[1], wdt * 0.6, 0.5);
+        if (i > 6 && i % 10 === 0 && Math.random() > 0.3) {
+          const side = Math.random() > .5 ? 1 : -1;
+          const da = ca + side * (0.6 + Math.random() * 0.4);
+          const dsz = (4.5 + Math.random() * 3) * sc;
+          const px = nx + Math.cos(da) * dsz * 1.5, py = ny + Math.sin(da) * dsz * 1.5;
+          if (Math.random() > 0.6) {
+            const ac = ACC[(Math.random() * ACC.length) | 0];
+            for (let p = 0; p < 4; p++) { const pa = da + (Math.PI / 2) * p; brush.blob(px + Math.cos(pa) * dsz * .5, py + Math.sin(pa) * dsz * .5, dsz * .8, ac, 0.26, pa, 1.4); }
+          } else {
+            brush.blob(px, py, dsz, VINE[1], 0.3, da, 1.8);
+            brush.blob(px, py, dsz * 0.7, VINE[0], 0.36, da, 1.6);
+          }
+        }
+        x = nx; y = ny;
+        if (i % 2 === 0) yield;
+      }
+      const tsz = (8 + Math.random() * 4) * sc, ac = ACC[(Math.random() * ACC.length) | 0];
+      for (let p = 0; p < 6; p++) { const pa = (Math.PI * 2 / 6) * p; brush.blob(x + Math.cos(pa) * tsz * .8, y + Math.sin(pa) * tsz * .8, tsz, ac, 0.22, pa, 1.6); brush.blob(x + Math.cos(pa) * tsz * .8, y + Math.sin(pa) * tsz * .8, tsz * .6, POM[0], 0.3, pa, 1.4); }
+      yield;
+    }
+    const base = 35 * sc;
+    for (let i = 0; i < 34; i++) {
+      const a = Math.random() * Math.PI * 2, r = Math.random() * base * 0.8, c = POM[(Math.random() * POM.length) | 0];
+      brush.blob(cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.9, (10 + Math.random() * 15) * sc, c, 0.14, a, 1.1 + Math.random() * 0.4);
+      if (i % 2 === 0) yield;
+    }
+    const crownY = cy - base * 0.9;
+    for (let i = -1; i <= 1; i++) brush.blob(cx + i * 8 * sc, crownY + Math.abs(i) * 3 * sc, 8 * sc, POM[0], 0.24, Math.PI / 2 + i * 0.3, 1.8);
+    yield;
+    brush.blob(cx, cy, base * 0.55, { h: 22, s: 70, l: 82 }, 0.2, 0, 1.2);
+    brush.blob(cx, cy, base * 0.5, { h: 15, s: 80, l: 74 }, 0.26, 0, 1.1);
+    for (let i = 0; i < 16; i++) { const a = Math.random() * Math.PI * 2, r = Math.random() * base * 0.4; brush.wash(cx + Math.cos(a) * r, cy + Math.sin(a) * r, (1.6 + Math.random() * 1.6) * sc, SEED, 0.55); if (i % 3 === 0) yield; }
+  }
+
+  function* genStorm(brush, w, h) {
+    const cx = w / 2, cy = h / 2;
+    const cloudDark = { h: 225, s: 35, l: 25 }, cloudMid = { h: 215, s: 25, l: 45 };
+    const lightning = { h: 45, s: 95, l: 75 }, skyBase = { h: 200, s: 15, l: 70 };
+    for (let i = 0; i < 10; i++) { brush.blob(cx, cy - 20, 150, skyBase, 0.03, 0, 1.5); yield; }
+    for (let i = 0; i < 50; i++) {
+      const px = cx + (Math.random() - .5) * 180, py = cy - 50 + (Math.random() - .5) * 60;
+      brush.blob(px, py, 40 + Math.random() * 30, Math.random() > .4 ? cloudDark : cloudMid, 0.06, 0, 1.6);
+      if (i % 2 === 0) yield;
+    }
+    for (let i = 0; i < 45; i++) {
+      const rx = cx + (Math.random() - .5) * 160, sy = cy + (Math.random() - .5) * 20;
+      brush.stroke(rx, sy, rx - 15 - Math.random() * 10, h, { h: 210, s: 40, l: 55 }, 2.5, 0.06);
+      yield;
+    }
+    let lx = cx + 20, ly = cy - 30;
+    for (let i = 0; i < 10; i++) {
+      const nx = lx + (Math.random() - .5) * 60, ny = ly + 15 + Math.random() * 25;
+      brush.stroke(lx, ly, nx, ny, lightning, 5, 0.6);
+      brush.stroke(lx, ly, nx, ny, lightning, 15, 0.1);
+      brush.wash(nx, ny, 12, lightning, 0.08);
+      lx = nx; ly = ny; yield;
+    }
+  }
+
+  function* genAnimals(brush, w, h) {
+    const cx = w / 2, cy = h / 2;
+    const cat = { h: 25, s: 75, l: 55 }, rabbit = { h: 30, s: 15, l: 85 };
+    const rabbitShadow = { h: 210, s: 15, l: 70 }, bird = { h: 195, s: 65, l: 60 };
+    for (let i = 0; i < 18; i++) {
+      brush.blob(cx + 45, cy + 25, 35, rabbit, 0.08, -0.1, 1.2);
+      brush.blob(cx + 40, cy + 30, 25, rabbitShadow, 0.04, 0, 1.1);
+      if (i < 10) { brush.stroke(cx + 35, cy - 5, cx + 25, cy - 50, rabbit, 12, 0.1); brush.stroke(cx + 55, cy - 5, cx + 55, cy - 45, rabbit, 12, 0.1); }
+      yield;
+    }
+    for (let i = 0; i < 18; i++) {
+      brush.blob(cx - 50, cy + 15, 38, cat, 0.07, 0.1, 1.15);
+      if (i < 8) { brush.stroke(cx - 65, cy - 15, cx - 75, cy - 40, cat, 10, 0.1); brush.stroke(cx - 35, cy - 15, cx - 30, cy - 40, cat, 10, 0.1); }
+      yield;
+    }
+    for (let i = 0; i < 15; i++) {
+      brush.blob(cx - 5, cy - 25, 22, bird, 0.07, 0.2, 1.3);
+      brush.blob(cx - 10, cy - 20, 12, { h: 200, s: 70, l: 50 }, 0.06, 0.5, 1.8);
+      yield;
+    }
+    brush.wash(cx - 55, cy + 5, 2.5, { h: 0, s: 0, l: 20 }, 0.4);
+    brush.wash(cx + 35, cy + 15, 2.5, { h: 0, s: 0, l: 20 }, 0.4);
+    brush.wash(cx + 5, cy - 30, 2, { h: 0, s: 0, l: 20 }, 0.4);
+    brush.stroke(cx + 12, cy - 28, cx + 22, cy - 25, { h: 40, s: 80, l: 55 }, 4, 0.3);
+    yield;
+  }
+
+  function* genWorkspace(brush, w, h) {
+    const cx = w / 2, cy = h / 2 + 20;
+    const laptop = { h: 215, s: 15, l: 65 }, laptopDark = { h: 215, s: 20, l: 45 };
+    const paper = { h: 40, s: 10, l: 92 }, wood = { h: 35, s: 30, l: 50 };
+    for (let i = 0; i < 8; i++) { brush.stroke(cx - 120, cy + 60, cx + 120, cy + 60, wood, 30, 0.08); yield; }
+    for (let i = 0; i < 12; i++) {
+      brush.stroke(cx - 50, cy - 50, cx + 50, cy - 50, laptop, 12, 0.12);
+      brush.stroke(cx - 50, cy - 50, cx - 55, cy, laptop, 10, 0.12);
+      brush.stroke(cx + 50, cy - 50, cx + 55, cy, laptop, 10, 0.12);
+      yield;
+    }
+    for (let i = 0; i < 8; i++) { brush.stroke(cx - 65, cy + 5, cx + 65, cy + 5, laptopDark, 15, 0.15); yield; }
+    for (let i = 0; i < 6; i++) { brush.wash(cx, cy - 25, 40, { h: 200, s: 40, l: 85 }, 0.08); yield; }
+    for (let i = 0; i < 20; i++) {
+      if (i < 8) { const bh = cy + 40 - i * 6; brush.stroke(cx + 70, bh, cx + 110, bh, { h: (i * 45) % 360, s: 50, l: 55 }, 6, 0.15); }
+      brush.blob(cx - 80 + (Math.random() - .5) * 15, cy + 40 + (Math.random() - .5) * 15, 25, paper, 0.08, Math.random() * 0.5, 1.4);
+      yield;
+    }
+  }
+
+  const ART_GENS = { embroidery: genEmbroidery, storm: genStorm, animals: genAnimals, workspace: genWorkspace };
+
+  function runArt(canvas, genFn, hold) {
+    const size = 400;
+    canvas.width = size; canvas.height = size;
+    const paint = document.createElement('canvas'); paint.width = size; paint.height = size;
+    const pctx = paint.getContext('2d'); pctx.lineCap = 'round'; pctx.lineJoin = 'round';
+    const dctx = canvas.getContext('2d');
+    const brush = new Brush(pctx);
+    function render() { dctx.clearRect(0, 0, size, size); dctx.drawImage(paint, 0, 0); }
+    function play() {
+      if (!document.body.contains(canvas)) return;
+      pctx.clearRect(0, 0, size, size);
+      const it = genFn(brush, size, size);
+      function step() {
+        let batch = 5, r;
+        do { r = it.next(); } while (!r.done && --batch > 0);
+        render();
+        if (!r.done) { document.hidden ? setTimeout(step, 60) : requestAnimationFrame(step); }
+        else setTimeout(fadeOut, hold || 4200);
+      }
+      function fadeOut() {
+        if (!document.body.contains(canvas)) return;
+        let f = 0;
+        function ff() {
+          pctx.save(); pctx.globalCompositeOperation = 'destination-out';
+          pctx.fillStyle = 'rgba(0,0,0,0.10)'; pctx.fillRect(0, 0, size, size); pctx.restore();
+          render();
+          if (++f < 34) { document.hidden ? setTimeout(ff, 60) : requestAnimationFrame(ff); }
+          else { pctx.clearRect(0, 0, size, size); play(); }
+        }
+        ff();
+      }
+      step();
+    }
+    play();
+  }
+
   /* ---------- mount on visibility ---------- */
   /* wait until the canvas actually has layout before painting */
   function whenSized(c, fn, tries) {
@@ -398,6 +574,8 @@
           once ? runFlowers(c) : driveLoop(c, d => runFlowers(c, d), 5200);
         } else if (c.dataset.wc === 'cats') {
           once ? runCats(c) : driveLoop(c, d => runCats(c, d), 4200);
+        } else if (ART_GENS[c.dataset.wc]) {
+          runArt(c, ART_GENS[c.dataset.wc], 4600);
         }
       });
     });
