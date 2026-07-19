@@ -61,12 +61,26 @@
     });
   })();
 
-  /* make sure muted loop videos actually play */
+  /* make sure muted loop videos actually play (retry until they do, and
+     fall back to the first user interaction if autoplay is blocked) */
   function nudgeVideos() {
-    document.querySelectorAll('video[autoplay]').forEach(v => { v.play().catch(() => {}); });
+    document.querySelectorAll('video[autoplay]').forEach(v => {
+      if (!v.paused) return;
+      const p = v.play();
+      if (p && p.catch) p.catch(() => {});
+    });
   }
+  nudgeVideos();
   window.addEventListener('load', nudgeVideos);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) nudgeVideos(); });
+  let nudgeTries = 0;
+  const nudgeTimer = setInterval(() => {
+    nudgeVideos();
+    const stuck = [...document.querySelectorAll('video[autoplay]')].some(v => v.paused);
+    if (!stuck || ++nudgeTries > 20) clearInterval(nudgeTimer);
+  }, 400);
+  ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(ev =>
+    window.addEventListener(ev, nudgeVideos, { once: true, passive: true }));
 
   /* ----------------------------------------------------------
      NAV — hero-aware colour + solid state after scroll

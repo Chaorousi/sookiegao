@@ -40,6 +40,15 @@
       this.wash(x + Math.cos(a) * d, y + Math.sin(a) * d, Math.random() * 2.5 + .5, c, .05 + Math.random() * .05);
     }
   };
+  Brush.prototype.streak = function (x1, y1, x2, y2, radius, color, opacity, stretch) {
+    stretch = stretch == null ? 2 : stretch;
+    const steps = Math.ceil(Math.hypot(x2 - x1, y2 - y1) / (radius * 0.8));
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    for (let i = 0; i <= steps; i++) {
+      const t = steps === 0 ? 0 : i / steps;
+      this.blob(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t, radius, color, opacity, a, stretch);
+    }
+  };
 
   function setup(canvas) {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -516,7 +525,116 @@
     }
   }
 
-  const ART_GENS = { embroidery: genEmbroidery, storm: genStorm, animals: genAnimals, workspace: genWorkspace };
+  /* ---------- book (open storybook) ---------- */
+  function* genBook(brush, w, h) {
+    const cx = w / 2, cy = h / 2, sc = Math.min(w, h) / 250;
+    const P = { cover: { h: 212, s: 58, l: 46 }, page: { h: 44, s: 48, l: 94 }, shadow: { h: 214, s: 46, l: 32 }, text: { h: 25, s: 35, l: 42 }, glow: { h: 45, s: 82, l: 82 } };
+    const bw = 90 * sc, bh = 65 * sc, maxAge = 170;
+    for (let age = 0; age < maxAge; age++) {
+      const prog = age / maxAge;
+      if (prog < 0.2) {
+        for (let i = 0; i < 3; i++) { const a = Math.random() * Math.PI * 2, r = Math.random() * bw * 1.5; brush.blob(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 35 * sc, P.glow, 0.03, 0, 1.2); }
+      } else if (prog < 0.4) {
+        for (let i = 0; i < 8; i++) {
+          brush.blob(cx + (Math.random() - .5) * bw * 2.2, cy + (Math.random() - .5) * bh * 2.2, 20 * sc, P.cover, 0.07, 0, 1.4);
+          brush.blob(cx + (Math.random() > .5 ? 1 : -1) * bw * 1.05, cy + (Math.random() - .5) * bh * 2.1, 12 * sc, P.shadow, 0.07, Math.PI / 2, 2.5);
+        }
+      } else if (prog < 0.7) {
+        for (let i = 0; i < 12; i++) {
+          const side = Math.random() > .5 ? 1 : -1;
+          const px = cx + side * (Math.random() * bw * 0.95 + bw * 0.05), py = cy + (Math.random() - .5) * bh * 1.9;
+          const sag = Math.sin((px - cx) / bw * Math.PI) * bh * 0.15;
+          brush.blob(px, py + sag, 15 * sc, P.page, 0.14, 0.1 * side, 1.3);
+          if (Math.random() < 0.2) { const ex = cx + side * bw; brush.streak(ex, cy - bh * 0.9, ex, cy + bh * 0.9, 4 * sc, P.page, 0.16, 3); }
+        }
+      } else {
+        if (Math.random() < 0.4) brush.blob(cx, cy + (Math.random() - .5) * bh * 2, 10 * sc, P.shadow, 0.04, Math.PI / 2, 3);
+        if (Math.random() < 0.7) {
+          const side = Math.random() > .5 ? 1 : -1;
+          let lx = cx + side * bw * 0.15, rx = cx + side * bw * 0.85; const sagBase = (Math.random() - .5) * bh * 1.6;
+          if (side === -1) { const t = lx; lx = rx; rx = t; }
+          for (let i = 0; i < 5; i++) {
+            const t1 = i / 5, t2 = (i + 1) / 5;
+            brush.stroke(lx + (rx - lx) * t1, cy + sagBase + Math.sin(t1 * Math.PI) * bh * 0.1, lx + (rx - lx) * t2, cy + sagBase + Math.sin(t2 * Math.PI) * bh * 0.1, P.text, 2.5 * sc, 0.09);
+          }
+        }
+      }
+      yield;
+    }
+  }
+
+  /* ---------- girl figure ---------- */
+  function* genGirl(brush, w, h) {
+    const s = Math.min(w, h) / 250, cx = w / 2, cy = h / 2;
+    const P = { skin: { h: 25, s: 60, l: 82 }, skinDark: { h: 20, s: 65, l: 70 }, dress: { h: 195, s: 66, l: 60 }, dressDark: { h: 195, s: 70, l: 45 }, hair: { h: 20, s: 60, l: 24 }, blush: { h: 350, s: 75, l: 75 }, shoes: { h: 350, s: 66, l: 44 } };
+    const y0 = cy - 18 * s;
+    const hx = cx, hy = y0 - 55 * s, tx = cx, ty = y0 - 25 * s, dx = cx, dy = y0 + 45 * s;
+    const maxAge = 170;
+    for (let age = 0; age < maxAge; age++) {
+      const prog = age / maxAge;
+      if (prog < 0.25) {
+        brush.blob(hx + (Math.random() - .5) * 8 * s, hy + (Math.random() - .5) * 8 * s, 12 * s, P.skin, 0.06, 0, 1.1);
+        brush.blob(tx, ty, 10 * s, P.skinDark, 0.045);
+        if (Math.random() < 0.4) brush.streak(tx - 15 * s, ty + 5 * s, tx - 35 * s, ty + 35 * s, 5 * s, P.skin, 0.06);
+        if (Math.random() < 0.4) brush.streak(tx + 15 * s, ty + 5 * s, tx + 35 * s, ty + 35 * s, 5 * s, P.skin, 0.06);
+        if (Math.random() < 0.4) brush.streak(dx - 12 * s, dy, dx - 15 * s, dy + 45 * s, 6 * s, P.skin, 0.06);
+        if (Math.random() < 0.4) brush.streak(dx + 12 * s, dy, dx + 15 * s, dy + 45 * s, 6 * s, P.skin, 0.06);
+      } else if (prog < 0.6) {
+        const v = Math.random(), ww = (15 + v * 35) * s;
+        const px = tx + (Math.random() - .5) * ww * 2.2, py = ty + v * (dy - ty);
+        brush.blob(px, py, 14 * s, Math.random() > 0.7 ? P.dressDark : P.dress, 0.055, 0, 1.3);
+        if (Math.random() < 0.1) brush.streak(px, ty + 10 * s, px, dy, 3 * s, P.dressDark, 0.045, 3);
+      } else if (prog < 0.85) {
+        const a = -Math.PI + Math.random() * Math.PI * 1.2, r = 10 * s + Math.random() * 12 * s;
+        brush.blob(hx + Math.cos(a) * r, hy - 2 * s + Math.sin(a) * r, 11 * s, P.hair, 0.065, a, 1.4);
+        if (Math.random() < 0.35) { const side = Math.random() > .5 ? 1 : -1; brush.blob(hx + side * (12 * s + Math.random() * 8 * s), hy + Math.random() * 35 * s, 8 * s, P.hair, 0.055, Math.PI / 2, 2.5); }
+      } else {
+        if (Math.random() < 0.3) { const side = Math.random() > .5 ? 1 : -1; brush.blob(hx + side * 8 * s, hy + 2 * s, 5 * s, P.blush, 0.045); }
+        if (Math.random() < 0.4) { const side = Math.random() > .5 ? 1 : -1, sx = dx + side * 15 * s, sy = dy + 45 * s; brush.blob(sx, sy, 8 * s, P.shoes, 0.075, 0, 1.4); brush.streak(sx - 5 * s, sy, sx + 5 * s, sy, 4 * s, P.shoes, 0.09); }
+      }
+      yield;
+    }
+  }
+
+  /* ---------- heart ---------- */
+  function* genHeart(brush, w, h) {
+    const cx = w / 2, cy = h / 2, sc = Math.min(w, h) / 200;
+    const P = { base: { h: 345, s: 85, l: 58 }, dark: { h: 340, s: 95, l: 42 }, light: { h: 352, s: 78, l: 76 }, wash: { h: 330, s: 62, l: 84 } };
+    const pts = [];
+    for (let i = 0; i < 360; i++) {
+      const t = Math.random() * Math.PI * 2;
+      const hx = 16 * Math.pow(Math.sin(t), 3);
+      const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+      const d = Math.pow(Math.random(), 0.5);
+      pts.push({ dx: hx * d * 3.5, dy: hy * d * 3.5, r: d });
+    }
+    pts.sort((a, b) => a.r - b.r);
+    const maxAge = 170;
+    for (let age = 0; age < maxAge; age++) {
+      const prog = age / maxAge;
+      if (prog < 0.2) {
+        for (let i = 0; i < 4; i++) { const a = Math.random() * Math.PI * 2, r = Math.random() * 60 * sc; brush.blob(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 30 * sc, P.wash, 0.03, 0, 1.5); }
+      } else if (prog < 0.85) {
+        const startIdx = Math.floor(((prog - 0.2) / 0.65) * pts.length);
+        for (let i = 0; i < 3; i++) {
+          const p = pts[startIdx + i]; if (!p) break;
+          const px = cx + p.dx * sc, py = cy + p.dy * sc;
+          let c = P.base; if (p.r > 0.8) c = P.dark; else if (Math.random() > 0.7) c = P.light;
+          brush.blob(px, py, (12 + Math.random() * 8) * sc * (1.1 - p.r * 0.4), c, 0.05, Math.atan2(p.dy, p.dx), 1.3);
+        }
+      } else {
+        for (let i = 0; i < 3; i++) {
+          const t = Math.random() * Math.PI * 2;
+          const hx = 16 * Math.pow(Math.sin(t), 3);
+          const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+          brush.blob(cx + hx * 3.5 * sc, cy + hy * 3.5 * sc, 6 * sc, P.dark, 0.06, t, 2.0);
+        }
+      }
+      yield;
+    }
+  }
+
+  const ART_GENS = { embroidery: genEmbroidery, storm: genStorm, animals: genAnimals, workspace: genWorkspace, book: genBook, girl: genGirl, heart: genHeart };
 
   function runArt(canvas, genFn, hold) {
     const size = 400;

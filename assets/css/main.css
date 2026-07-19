@@ -552,8 +552,24 @@ canvas[data-wc], canvas[data-wc-icon]{filter:url(#wcpaper) blur(.3px)}
 }
 .wc-art.tr{right:calc(var(--pad) - 20px);top:clamp(60px,7vw,110px)}
 .wc-art.br{right:calc(var(--pad) - 20px);bottom:clamp(20px,3vw,54px)}
+.wc-art.cr{right:calc(var(--pad) - 20px);top:50%;transform:translateY(-50%)}
 .sec-rel > *:not(.wc-art){position:relative;z-index:1}
 @media (max-width:1000px){.wc-art{display:none}}
+
+/* rounded media frames (soft corners like the poster cards) */
+.reveal-img,
+.hgal img,
+.poster-row img,
+.bento img,
+.phone-row img,
+.essay-teaser-thumb img,
+.doc-cover,
+.tall-window,
+.film video,
+.film-embed,
+.site-embed{border-radius:16px}
+.film-embed,.site-embed{overflow:hidden}
+.doc-cover img{border-radius:inherit}
 
 /* next section footer */
 .next-sec{
