@@ -554,7 +554,14 @@ canvas[data-wc], canvas[data-wc-icon]{filter:url(#wcpaper) blur(.3px)}
 .wc-art.br{right:calc(var(--pad) - 20px);bottom:clamp(20px,3vw,54px)}
 .wc-art.cr{right:calc(var(--pad) - 20px);top:50%;transform:translateY(-50%)}
 .sec-rel > *:not(.wc-art){position:relative;z-index:1}
-@media (max-width:1000px){.wc-art{display:none}}
+/* on small screens the side space disappears, so the paintings flow inline:
+   centered between the project text and its media, same colors and pace */
+@media (max-width:1000px){
+  .wc-art, .wc-side{
+    position:static;display:block;margin:6px auto 22px;transform:none;
+    width:min(230px,62vw);height:min(230px,62vw);
+  }
+}
 
 /* rounded media frames (soft corners like the poster cards) */
 .reveal-img,

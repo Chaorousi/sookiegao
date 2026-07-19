@@ -60,14 +60,19 @@
     return { ctx: ctx, w: w, h: h, brush: new Brush(ctx) };
   }
 
-  /* time-based driver: catches up when rAF is throttled (hidden tabs),
-     so an animation always completes even if the user switches away */
-  function drive(stepFn, onDone) {
-    let last = performance.now();
+  /* time-based driver: advances exactly one step every msPerStep of real
+     time (fractional accumulator, so 60Hz and 120Hz screens paint at the
+     same pace) and catches up when rAF is throttled in hidden tabs, so an
+     animation always completes even if the user switches away */
+  function drive(stepFn, onDone, msPerStep) {
+    const ms = msPerStep || 16.7;
+    let last = performance.now(), acc = 1; // start with one step ready
     function tick() {
       const now = performance.now();
-      let steps = Math.min(80, Math.max(1, Math.round((now - last) / 16.7)));
+      acc += (now - last) / ms;
       last = now;
+      let steps = Math.min(80, Math.floor(acc));
+      acc -= steps;
       let done = false;
       while (steps-- > 0 && !done) done = !!stepFn();
       if (!done) {
@@ -175,7 +180,7 @@
         if (age === 88) brush.blob(-5 * s, -15 * s, 4 * s, { h: 45, s: 85, l: 55 }, .16, 0, 1.2);
       }
     }
-    drive(frame, onDone);
+    drive(frame, onDone, 40); // unhurried, watercolor-paced strokes
   }
 
   /* ---------- flowers (Symbiotic Healing) ---------- */
@@ -384,7 +389,9 @@
       cats.forEach(c => { if (!c.draw()) active = true; });
       return !active;
     }
-    drive(loop, onDone);
+    // the loader pair must finish within the loading ceremony; the looping
+    // Paws cats can take their time like the flowers do
+    drive(loop, onDone, duo ? undefined : 34);
   }
 
   /* ============================================================
@@ -636,7 +643,13 @@
 
   const ART_GENS = { embroidery: genEmbroidery, storm: genStorm, animals: genAnimals, workspace: genWorkspace, book: genBook, girl: genGirl, heart: genHeart };
 
-  function runArt(canvas, genFn, hold) {
+  /* how much real time each generator yield takes, so every motif paints
+     itself in slowly like the flowers do (timing only — colors untouched) */
+  const ART_SPEED = { embroidery: 34, storm: 55, animals: 85, workspace: 85, book: 34, girl: 34, heart: 34 };
+
+  function runArt(canvas, type, hold) {
+    const genFn = ART_GENS[type];
+    const msPerYield = ART_SPEED[type] || 40;
     const size = 400;
     canvas.width = size; canvas.height = size;
     const paint = document.createElement('canvas'); paint.width = size; paint.height = size;
@@ -648,21 +661,35 @@
       if (!document.body.contains(canvas)) return;
       pctx.clearRect(0, 0, size, size);
       const it = genFn(brush, size, size);
+      let last = performance.now(), acc = 1;
       function step() {
-        let batch = 5, r;
-        do { r = it.next(); } while (!r.done && --batch > 0);
+        const now = performance.now();
+        acc += (now - last) / msPerYield;
+        last = now;
+        let n = Math.min(60, Math.floor(acc));
+        acc -= n;
+        let r = { done: false };
+        while (n-- > 0 && !r.done) r = it.next();
         render();
-        if (!r.done) { document.hidden ? setTimeout(step, 60) : requestAnimationFrame(step); }
+        if (!r.done) { document.hidden ? setTimeout(step, 80) : requestAnimationFrame(step); }
         else setTimeout(fadeOut, hold || 4200);
       }
       function fadeOut() {
         if (!document.body.contains(canvas)) return;
-        let f = 0;
+        let f = 0, fl = performance.now(), fa = 1;
         function ff() {
-          pctx.save(); pctx.globalCompositeOperation = 'destination-out';
-          pctx.fillStyle = 'rgba(0,0,0,0.10)'; pctx.fillRect(0, 0, size, size); pctx.restore();
+          const now = performance.now();
+          fa += (now - fl) / 30;
+          fl = now;
+          let n = Math.min(30, Math.floor(fa));
+          fa -= n;
+          while (n-- > 0 && f < 34) {
+            pctx.save(); pctx.globalCompositeOperation = 'destination-out';
+            pctx.fillStyle = 'rgba(0,0,0,0.10)'; pctx.fillRect(0, 0, size, size); pctx.restore();
+            f++;
+          }
           render();
-          if (++f < 34) { document.hidden ? setTimeout(ff, 60) : requestAnimationFrame(ff); }
+          if (f < 34) { document.hidden ? setTimeout(ff, 80) : requestAnimationFrame(ff); }
           else { pctx.clearRect(0, 0, size, size); play(); }
         }
         ff();
@@ -693,7 +720,7 @@
         } else if (c.dataset.wc === 'cats') {
           once ? runCats(c) : driveLoop(c, d => runCats(c, d), 4200);
         } else if (ART_GENS[c.dataset.wc]) {
-          runArt(c, ART_GENS[c.dataset.wc], 4600);
+          runArt(c, c.dataset.wc, 4600);
         }
       });
     });
