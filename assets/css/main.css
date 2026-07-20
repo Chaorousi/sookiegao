@@ -527,6 +527,13 @@ body.loading{overflow:hidden}
 .bento figcaption{margin-top:12px;font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--gray)}
 
 /* barrier-free — balanced two-column gallery (no dangling gaps) */
+.bf-poster-row{display:flex;justify-content:center;margin-bottom:clamp(44px,5.5vw,72px)}
+.bf-poster{max-width:min(720px,100%);width:100%}
+.bf-poster .doc-btn{font-size:11.5px;padding:14px 26px}
+.bf-photos-tag{
+  font-family:var(--display);font-size:13px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 clamp(18px,2vw,26px);max-width:1250px;
+}
 .bf-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(22px,2.8vw,44px);max-width:1250px;align-items:start}
 .bf-col{display:flex;flex-direction:column;gap:clamp(22px,2.8vw,44px)}
 .bf-grid figure{margin:0}
@@ -534,6 +541,7 @@ body.loading{overflow:hidden}
 .bf-grid figure:hover img{transform:translateY(-6px)}
 .bf-grid figcaption{margin-top:12px;font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--gray)}
 @media (max-width:760px){
+  .bf-poster{max-width:460px}
   .bf-grid{grid-template-columns:1fr;max-width:520px;margin-inline:auto;gap:clamp(22px,5vw,40px)}
 }
 
