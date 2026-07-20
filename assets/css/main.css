@@ -526,6 +526,17 @@ body.loading{overflow:hidden}
 .bento figure:hover img{transform:translateY(-6px)}
 .bento figcaption{margin-top:12px;font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--gray)}
 
+/* barrier-free — balanced two-column gallery (no dangling gaps) */
+.bf-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(22px,2.8vw,44px);max-width:1250px;align-items:start}
+.bf-col{display:flex;flex-direction:column;gap:clamp(22px,2.8vw,44px)}
+.bf-grid figure{margin:0}
+.bf-grid img{width:100%;display:block;border-radius:16px;box-shadow:0 18px 44px rgba(22,19,15,.16);cursor:zoom-in;transition:transform .7s var(--ease)}
+.bf-grid figure:hover img{transform:translateY(-6px)}
+.bf-grid figcaption{margin-top:12px;font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--gray)}
+@media (max-width:760px){
+  .bf-grid{grid-template-columns:1fr;max-width:520px;margin-inline:auto;gap:clamp(22px,5vw,40px)}
+}
+
 /* lightbox */
 .lightbox{
   position:fixed;inset:0;z-index:1300;background:rgba(16,13,10,.96);
