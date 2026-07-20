@@ -364,6 +364,16 @@ body.loading{overflow:hidden}
 /* documents (fullscreen readers) */
 .doc-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:clamp(26px,3.4vw,54px);align-items:start}
 .doc{max-width:560px}
+/* four page-shaped cards in one archive shelf */
+.doc-row.four{grid-template-columns:repeat(4,1fr);gap:clamp(20px,2.4vw,40px)}
+.doc-row.four .doc{max-width:none}
+.tall-window.doc-window{
+  height:auto;aspect-ratio:1/1.414;
+  box-shadow:0 22px 55px rgba(0,0,0,.5);
+}
+.tall-window.doc-window img{width:100%}
+@media (max-width:1180px){.doc-row.four{grid-template-columns:repeat(2,1fr);max-width:760px}}
+@media (max-width:620px){.doc-row.four{grid-template-columns:1fr;max-width:none}}
 .doc-cover{
   position:relative;display:block;width:100%;padding:0;overflow:hidden;
   box-shadow:0 22px 55px rgba(22,19,15,.18);cursor:pointer;background:#fff;
